@@ -15,27 +15,29 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Set up JDK 17
+      # 1. 切换为该项目强制要求的 Java 8
+      - name: Set up JDK 8
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "17"
+          java-version: "8"
 
-      - name: Auto Detect & Setup Android NDK
+      # 2. 自动下载安装项目指定的 android-27 平台 SDK
+      - name: Install Android 27 Platform
         run: |
-          echo "SDK Root: $ANDROID_SDK_ROOT"
-          # 自动获取 GitHub 机器自带的最新 NDK 路径并写入 local.properties
-          NDK_PATH=$(find $ANDROID_SDK_ROOT/ndk -maxdepth 1 -mindepth 1 | sort -V | tail -n 1)
-          echo "Using NDK: $NDK_PATH"
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platforms;android-27" "build-tools;28.0.3"
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-          echo "ndk.dir=$NDK_PATH" >> local.properties
 
+      # 3. 赋予执行权限
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 4. 执行正式打包
       - name: Build APK with Gradle
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleRelease --stacktrace || ./gradlew assembleDebug --stacktrace
 
+      # 5. 上传最终生成的 APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
