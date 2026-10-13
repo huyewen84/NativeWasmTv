@@ -690,9 +690,9 @@ final class HlsProxyServer implements Closeable {
                 : Executors.newFixedThreadPool(lowResourceDevice ? 2 : 4);
         int decryptThreads = !parallelCctvDecrypt ? 1
                 : (lowResourceDevice
-                ? CCTV_LOW_RAM_DECRYPT_THREADS : CCTV_PARALLEL_DECRYPT_THREADS);
+                ? 4 : Math.max(CCTV_PARALLEL_DECRYPT_THREADS, 4));
         cctvPrefetchWorkers = newCctvPrefetchExecutor(decryptThreads);
-        genericPrefetchWorkers = Executors.newFixedThreadPool(3);
+        genericPrefetchWorkers = Executors.newFixedThreadPool(Math.max(Runtime.getRuntime().availableProcessors(), 4));
         Log.i(TAG, "CCTV decrypt profile parallel=" + parallelCctvDecrypt
                 + " prefetchThreads=" + decryptThreads
                 + " statefulSession=" + parallelCctvDecrypt
@@ -3716,7 +3716,7 @@ final class HlsProxyServer implements Closeable {
         }
         if(serverSocket!=null)try{serverSocket.close();}catch(IOException ignored){}
     }
-    private static final ExecutorService CLEANUP_WORKER = Executors.newFixedThreadPool(2);
+    private static final ExecutorService CLEANUP_WORKER = Executors.newFixedThreadPool(Math.max(Runtime.getRuntime().availableProcessors(), 4));
     private final java.util.concurrent.atomic.AtomicBoolean cleanupStarted = new java.util.concurrent.atomic.AtomicBoolean();
     void closeAsync() {
         // Shared H5E cancellation must finish before a new channel starts decrypting.

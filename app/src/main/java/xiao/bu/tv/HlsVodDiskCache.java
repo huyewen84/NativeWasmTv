@@ -24,7 +24,7 @@ final class HlsVodDiskCache implements Closeable {
     private final Connections connections;
     private final int mode;
     private final long quota;
-    private final ExecutorService workers = Executors.newFixedThreadPool(2);
+    private final ExecutorService workers = Executors.newFixedThreadPool(Math.max(Runtime.getRuntime().availableProcessors(), 4));
     private final Map<String, Track> tracks = new LinkedHashMap<>();
     private final Map<String, Entry> entries = new LinkedHashMap<>();
     private final List<Track> trackOrder = new ArrayList<>();
